@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  db:
+    container_name: nest-graphql-mongo-dev
+    image: mongo:5
+    ports:
+      - 27017:27017
+    networks:
+      - dev-net
+    env_file:
+      - .env.development
+    volumes:
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+
+networks:
+  dev-net:
