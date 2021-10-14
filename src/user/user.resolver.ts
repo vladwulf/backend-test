@@ -9,6 +9,7 @@ import { GetAuthSig, GetChainId } from '../common/decorators';
 import { ChainService } from '../chain/chain.service';
 import { EventType } from '../worker/enum';
 import { NetworkType } from '../chain/enum';
+import { isValidChainId } from '../common/utils';
 
 @Resolver('User')
 export class UserResolver {
@@ -19,73 +20,77 @@ export class UserResolver {
 
   @Query()
   async user(@Args('address') address: string, @GetChainId() chainId: number) {
-    try {
-      const userId = `${chainId}:${address}`;
-      const lastRecord = await this.eventModel.findOne(
-        {
-          address,
-          chainId,
+    if (!chainId || !isValidChainId(chainId))
+      return new UserInputError('Provided ChainId not valid');
+
+    const userId = `${chainId}:${address}`;
+    const lastRecord = await this.eventModel.findOne(
+      {
+        address,
+        chainId,
+      },
+      {},
+      {
+        sort: {
+          blockNumber: -1,
         },
-        {},
-        {
-          sort: {
-            blockNumber: -1,
-          },
-        },
-      );
+      },
+    );
 
-      if (!lastRecord)
-        throw new UserInputError(`User at id ${userId} does not exist`);
+    if (!lastRecord) return null;
+    if (lastRecord.type === EventType.DELETE_IDENTITY) return null;
 
-      if (lastRecord.type === EventType.DELETE_IDENTITY) return null;
-
-      return {
-        id: userId,
-        chainId: lastRecord.chainId,
-        address: lastRecord.address,
-        username: lastRecord.username,
-        name: lastRecord.name,
-        twitter: lastRecord.twitter,
-      };
-    } catch (error) {
-      throw new ForbiddenError(error);
-    }
+    return {
+      id: userId,
+      chainId: lastRecord.chainId,
+      address: lastRecord.address,
+      username: lastRecord.username,
+      name: lastRecord.name,
+      twitter: lastRecord.twitter,
+    };
   }
 
   @Query()
   async me(@GetChainId() chainId: number, @GetAuthSig() authSig: string) {
+    console.log('chainId', chainId);
+    if (!chainId || !isValidChainId(chainId))
+      return new UserInputError('Provided ChainId not valid');
+    if (!authSig) return new UserInputError('Auth-Signature not provided');
+
+    let address: string;
     try {
-      const address = this.chainService.recoverEthAddress(authSig);
-      const userId = `${chainId}:${address}`;
-      const lastRecord = await this.eventModel.findOne(
-        {
-          address,
-          chainId,
-        },
-        {},
-        {
-          sort: {
-            blockNumber: -1,
-          },
-        },
-      );
-
-      if (!lastRecord)
-        throw new UserInputError(`User at id ${userId} does not exist`);
-
-      if (lastRecord.type === EventType.DELETE_IDENTITY) return null;
-
-      return {
-        id: userId,
-        chainId: lastRecord.chainId,
-        address: lastRecord.address,
-        username: lastRecord.username,
-        name: lastRecord.name,
-        twitter: lastRecord.twitter,
-      };
+      address = this.chainService.recoverEthAddress(authSig);
     } catch (error) {
-      throw new ForbiddenError(error);
+      return new UserInputError('Auth-Signature invalid');
     }
+
+    const userId = `${chainId}:${address}`;
+    const lastRecord = await this.eventModel.findOne(
+      {
+        address,
+        chainId,
+      },
+      {},
+      {
+        sort: {
+          blockNumber: -1,
+        },
+      },
+    );
+
+    if (!lastRecord)
+      throw new UserInputError(`User at id ${userId} does not exist`);
+
+    if (lastRecord.type === EventType.DELETE_IDENTITY) return null;
+
+    return {
+      id: userId,
+      chainId: lastRecord.chainId,
+      address: lastRecord.address,
+      username: lastRecord.username,
+      name: lastRecord.name,
+      twitter: lastRecord.twitter,
+    };
   }
 
   @Mutation()

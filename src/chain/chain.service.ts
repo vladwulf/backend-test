@@ -75,30 +75,76 @@ export class ChainService {
   /**
    * CONTRACT SPECIFIC
    */
-  async createIdentity(network: NetworkType, address: string, dto: UserInput) {
+  async createIdentity(
+    network: NetworkType,
+    address: string,
+    dto: UserInput,
+    nonce?: number,
+  ) {
     if (network === NetworkType.KOVAN) {
       const signer = this.getSigner(NetworkType.KOVAN);
       const contract = this.getContract(NetworkType.KOVAN, signer);
 
-      await contract.createIdentity(
+      if (nonce) {
+        return contract.createIdentity(
+          address,
+          dto.username,
+          dto.name,
+          dto.twitter,
+          {
+            gasPrice: ethers.utils.parseUnits('20', 'gwei'),
+            gasLimit: 3000000,
+            nonce,
+          },
+        );
+      }
+
+      return contract.createIdentity(
         address,
         dto.username,
         dto.name,
         dto.twitter,
+        {
+          gasPrice: ethers.utils.parseUnits('20', 'gwei'),
+          gasLimit: 3000000,
+        },
       );
     }
   }
 
-  async updateIdentity(network: NetworkType, address: string, dto: UserInput) {
+  async updateIdentity(
+    network: NetworkType,
+    address: string,
+    dto: UserInput,
+    nonce?: number,
+  ) {
     if (network === NetworkType.KOVAN) {
       const signer = this.getSigner(NetworkType.KOVAN);
       const contract = this.getContract(NetworkType.KOVAN, signer);
 
-      await contract.updateIdentity(
+      if (nonce) {
+        return await contract.updateIdentity(
+          address,
+          dto.username,
+          dto.name,
+          dto.twitter,
+          {
+            gasPrice: ethers.utils.parseUnits('20', 'gwei'),
+            gasLimit: 3000000,
+            nonce,
+          },
+        );
+      }
+
+      return await contract.updateIdentity(
         address,
         dto.username,
         dto.name,
         dto.twitter,
+        {
+          gasPrice: ethers.utils.parseUnits('20', 'gwei'),
+          gasLimit: 3000000,
+        },
       );
     }
   }
@@ -108,7 +154,10 @@ export class ChainService {
       const signer = this.getSigner(NetworkType.KOVAN);
       const contract = this.getContract(NetworkType.KOVAN, signer);
 
-      await contract.deleteIdentity(address);
+      await contract.deleteIdentity(address, {
+        gasPrice: ethers.utils.parseUnits('20', 'gwei'),
+        gasLimit: 3000000,
+      });
     }
   }
 
