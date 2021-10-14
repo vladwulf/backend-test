@@ -21,9 +21,9 @@ describe('User e2e Test', () => {
   let userSignature: string;
 
   // manual testing purposes
-  let user2Signature =
+  const user2Signature =
     '0x136d9bcb4e5ba4574ff1c8e7d0c4fb3f74a35d8516af7135ef64439e5a3babef0038adcbea27f30a51e6bd2ad3090609147362fbd72f47f5a539c3772b086a481c';
-  let user2Address = '0x14791697260E4c9A71f18484C9f997B308e59325';
+  const user2Address = '0x14791697260E4c9A71f18484C9f997B308e59325';
 
   beforeAll(async () => {
     const module = await Test.createTestingModule({
@@ -157,28 +157,25 @@ describe('User e2e Test', () => {
     });
   });
 
-  describe('user update', () => {
+  describe('user create', () => {
     const chainId = 42;
 
-    const newUsername = faker.internet.userName();
-    const newName = `${faker.name.firstName()} ${faker.name.lastName()}`;
-    const newTwitter =
+    const username = faker.internet.userName();
+    const name = `${faker.name.firstName()} ${faker.name.lastName()}`;
+    const twitter =
       '@' +
-      newName
+      name
         .split(' ')
         .map((name) => name[0])
         .join('');
 
-    it('should update me', async () => {
+    it('should create new identity', async () => {
       const query = gql`
         mutation ($input: UserInput!) {
-          updateMe(input: $input) {
+          signUp(input: $input) {
             id
             chainId
             address
-            name
-            username
-            twitter
           }
         }
       `;
@@ -191,9 +188,9 @@ describe('User e2e Test', () => {
         .send({
           variables: {
             input: {
-              username: newUsername,
-              name: newName,
-              twitter: newTwitter,
+              username,
+              name,
+              twitter,
             },
           },
           query: print(query),
@@ -201,33 +198,42 @@ describe('User e2e Test', () => {
         .expect((res) => {
           expect(res.body.errors).toBeUndefined();
           expect(res.status).toBe(200);
-          expect(res.body.data?.updateMe?.name).toBe(newName);
-          expect(res.body.data?.updateMe?.username).toBe(newUsername);
-          expect(res.body.data?.updateMe?.twitter).toBe(newTwitter);
+
+          expect(walletAddress).toBe(res.body.data?.signUp?.address);
+          expect(chainId).toBe(res.body.data?.signUp?.chainId);
+
+          const generatedId = res.body.data?.signUp?.id;
+          const splitId = generatedId.split(':');
+
+          expect(chainId).toBe(Number(splitId[0]));
+          expect(walletAddress).toBe(splitId[1]);
         });
     });
   });
 
-  // TODO: enable this and disable updateMe() test as nonces are too close
-  // describe('user create', () => {
+  // TODO: won'w work with user create since nonces are too different, run separately
+  // describe('user update', () => {
   //   const chainId = 42;
 
-  //   const username = faker.internet.userName();
-  //   const name = `${faker.name.firstName()} ${faker.name.lastName()}`;
-  //   const twitter =
+  //   const newUsername = faker.internet.userName();
+  //   const newName = `${faker.name.firstName()} ${faker.name.lastName()}`;
+  //   const newTwitter =
   //     '@' +
-  //     name
+  //     newName
   //       .split(' ')
   //       .map((name) => name[0])
   //       .join('');
 
-  //   it('should create new identity', async () => {
+  //   it('should update me', async () => {
   //     const query = gql`
   //       mutation ($input: UserInput!) {
-  //         signUp(input: $input) {
+  //         updateMe(input: $input) {
   //           id
   //           chainId
   //           address
+  //           name
+  //           username
+  //           twitter
   //         }
   //       }
   //     `;
@@ -240,9 +246,9 @@ describe('User e2e Test', () => {
   //       .send({
   //         variables: {
   //           input: {
-  //             username,
-  //             name,
-  //             twitter,
+  //             username: newUsername,
+  //             name: newName,
+  //             twitter: newTwitter,
   //           },
   //         },
   //         query: print(query),
@@ -250,15 +256,9 @@ describe('User e2e Test', () => {
   //       .expect((res) => {
   //         expect(res.body.errors).toBeUndefined();
   //         expect(res.status).toBe(200);
-
-  //         expect(walletAddress).toBe(res.body.data?.signUp?.address);
-  //         expect(chainId).toBe(res.body.data?.signUp?.chainId);
-
-  //         const generatedId = res.body.data?.signUp?.id;
-  //         const splitId = generatedId.split(':');
-
-  //         expect(chainId).toBe(Number(splitId[0]));
-  //         expect(walletAddress).toBe(splitId[1]);
+  //         expect(res.body.data?.updateMe?.name).toBe(newName);
+  //         expect(res.body.data?.updateMe?.username).toBe(newUsername);
+  //         expect(res.body.data?.updateMe?.twitter).toBe(newTwitter);
   //       });
   //   });
   // });
