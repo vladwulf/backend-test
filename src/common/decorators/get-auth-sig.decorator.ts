@@ -4,6 +4,6 @@ import { GqlExecutionContext } from '@nestjs/graphql';
 export const GetAuthSig = createParamDecorator(
   (data: unknown, ctx: ExecutionContext): string => {
     const context = GqlExecutionContext.create(ctx).getContext();
-    return context?.headers['auth-signature'];
+    return context?.locals?.authSignature;
   },
 );

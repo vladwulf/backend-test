@@ -20,8 +20,8 @@ import { WorkerModule } from './worker/worker.module';
       },
       context: ({ req }) => {
         req.locals = {
-          chainId: req.headers['Chain-Id'],
-          authSignature: req.headers['Auth-Signature'],
+          chainId: Number(req.headers['chain-id']),
+          authSignature: req.headers['auth-signature'],
         };
         return req;
       },
