@@ -20,6 +20,11 @@ describe('User e2e Test', () => {
   let walletAddress: string;
   let userSignature: string;
 
+  // manual testing purposes
+  let user2Signature =
+    '0x136d9bcb4e5ba4574ff1c8e7d0c4fb3f74a35d8516af7135ef64439e5a3babef0038adcbea27f30a51e6bd2ad3090609147362fbd72f47f5a539c3772b086a481c';
+  let user2Address = '0x14791697260E4c9A71f18484C9f997B308e59325';
+
   beforeAll(async () => {
     const module = await Test.createTestingModule({
       imports: [AppModule],
@@ -48,8 +53,6 @@ describe('User e2e Test', () => {
 
       walletAddress = await signer.getAddress();
       userSignature = signature;
-
-      nonce = await signer.getTransactionCount();
 
       expect(walletAddress).toBeDefined();
       expect(userSignature).toBeDefined();
