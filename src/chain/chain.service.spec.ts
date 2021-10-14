@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ethers } from 'ethers';
 import { ConfigModule } from '../config/config.module';
+import { UserInput } from '../graphql';
 
 import { ChainService } from './chain.service';
 import { kovanContract } from './contracts';
@@ -36,6 +37,15 @@ describe('ChainService', () => {
   });
 
   describe('chain logic', () => {
+    let mainAddress: string;
+    it('should get signer', async () => {
+      const kovanSigner = service.getSigner(NetworkType.KOVAN);
+      const address = await kovanSigner.getAddress();
+      expect(address).toBeDefined();
+
+      mainAddress = address;
+    });
+
     it('should connect to two chains', async () => {
       const kovanProvider = service.getProvider(NetworkType.KOVAN);
       const rinkebyProvider = service.getProvider(NetworkType.RINKEBY);
@@ -54,16 +64,17 @@ describe('ChainService', () => {
         expect(contract).not.toBeNull();
       });
 
-      it('should get rinkeby contract', async () => {
-        const rinkebySigner = service.getSigner(NetworkType.RINKEBY);
-        const contract = service.getContract(
-          NetworkType.RINKEBY,
-          rinkebySigner,
-        );
+      // TODO: enable when rinkeby is deployed
+      // it('should get rinkeby contract', async () => {
+      //   const rinkebySigner = service.getSigner(NetworkType.RINKEBY);
+      //   const contract = service.getContract(
+      //     NetworkType.RINKEBY,
+      //     rinkebySigner,
+      //   );
 
-        expect(contract).toBeDefined();
-        expect(contract).not.toBeNull();
-      });
+      //   expect(contract).toBeDefined();
+      //   expect(contract).not.toBeNull();
+      // });
 
       it('should get events for kovan', async () => {
         const events = await service.getEvents(
@@ -73,6 +84,20 @@ describe('ChainService', () => {
         );
 
         expect(events.length).toBeGreaterThan(0);
+      });
+
+      it('should create identity', async () => {
+        const dto: UserInput = {
+          name: 'Cherry pick',
+          twitter: '@cp',
+          username: 'cherryP',
+        };
+
+        const identity = await service.createIdentity(
+          NetworkType.KOVAN,
+          mainAddress,
+          dto,
+        );
       });
     });
   });
