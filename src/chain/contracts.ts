@@ -19,6 +19,12 @@ export const kovanContract = {
         {
           indexed: false,
           internalType: 'string',
+          name: '_username',
+          type: 'string',
+        },
+        {
+          indexed: false,
+          internalType: 'string',
           name: 'name',
           type: 'string',
         },
@@ -45,6 +51,12 @@ export const kovanContract = {
           indexed: true,
           internalType: 'string',
           name: 'username',
+          type: 'string',
+        },
+        {
+          indexed: false,
+          internalType: 'string',
+          name: '_username',
           type: 'string',
         },
       ],
@@ -83,6 +95,12 @@ export const kovanContract = {
           indexed: true,
           internalType: 'string',
           name: 'username',
+          type: 'string',
+        },
+        {
+          indexed: false,
+          internalType: 'string',
+          name: '_username',
           type: 'string',
         },
         {
