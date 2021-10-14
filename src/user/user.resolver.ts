@@ -1,5 +1,5 @@
 import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
-import { UserInputError, ForbiddenError } from 'apollo-server-express';
+import { UserInputError } from 'apollo-server-express';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
@@ -52,7 +52,6 @@ export class UserResolver {
 
   @Query()
   async me(@GetChainId() chainId: number, @GetAuthSig() authSig: string) {
-    console.log('chainId', chainId);
     if (!chainId || !isValidChainId(chainId))
       return new UserInputError('Provided ChainId not valid');
     if (!authSig) return new UserInputError('Auth-Signature not provided');
@@ -99,30 +98,38 @@ export class UserResolver {
     @GetChainId() chainId: number,
     @GetAuthSig() authSig: string,
   ) {
-    if (!chainId) throw new UserInputError('Chain id not defined');
-    if (!authSig) throw new UserInputError('Auth sig not defined');
-    try {
-      const address = this.chainService.recoverEthAddress(authSig);
-      const userId = `${chainId}:${address}`;
+    if (!chainId || !isValidChainId(chainId))
+      return new UserInputError('Provided ChainId not valid');
+    if (!authSig) return new UserInputError('Auth-Signature not provided');
 
-      if (chainId === 42) {
+    let address: string;
+    try {
+      address = this.chainService.recoverEthAddress(authSig);
+    } catch (error) {
+      return new UserInputError('Auth-Signature invalid');
+    }
+
+    const userId = `${chainId}:${address}`;
+
+    if (chainId === 42) {
+      try {
         await this.chainService.createIdentity(
           NetworkType.KOVAN,
           address,
           input,
         );
-
-        return {
-          id: userId,
-          chainId: chainId,
-          address: address,
-          username: input.username,
-          name: input.name,
-          twitter: input.twitter,
-        };
+      } catch (error) {
+        return new UserInputError('Please provide a valid UserInput');
       }
-    } catch (error) {
-      throw new ForbiddenError(error);
+
+      return {
+        id: userId,
+        chainId: chainId,
+        address: address,
+        username: input.username,
+        name: input.name,
+        twitter: input.twitter,
+      };
     }
   }
 
@@ -132,41 +139,51 @@ export class UserResolver {
     @GetChainId() chainId: number,
     @GetAuthSig() authSig: string,
   ) {
-    try {
-      const address = this.chainService.recoverEthAddress(authSig);
-      const userId = `${chainId}:${address}`;
+    if (!chainId || !isValidChainId(chainId))
+      return new UserInputError('Provided ChainId not valid');
+    if (!authSig) return new UserInputError('Auth-Signature not provided');
 
-      if (chainId === 42) {
+    let address: string;
+    try {
+      address = this.chainService.recoverEthAddress(authSig);
+    } catch (error) {
+      return new UserInputError('Auth-Signature invalid');
+    }
+
+    const userId = `${chainId}:${address}`;
+
+    if (chainId === 42) {
+      try {
         await this.chainService.updateIdentity(
           NetworkType.KOVAN,
           address,
           input,
         );
-
-        const lastRecord = await this.eventModel.findOne(
-          {
-            address,
-            chainId,
-          },
-          {},
-          {
-            sort: {
-              blockNumber: -1,
-            },
-          },
-        );
-
-        return {
-          id: userId,
-          chainId: lastRecord.chainId,
-          address: lastRecord.address,
-          username: input.username || lastRecord.username,
-          name: input.name || lastRecord.name,
-          twitter: input.twitter || lastRecord.twitter,
-        };
+      } catch (error) {
+        return new UserInputError(error.message);
       }
-    } catch (error) {
-      throw new ForbiddenError(error);
+
+      const lastRecord = await this.eventModel.findOne(
+        {
+          address,
+          chainId,
+        },
+        {},
+        {
+          sort: {
+            blockNumber: -1,
+          },
+        },
+      );
+
+      return {
+        id: userId,
+        chainId: lastRecord.chainId,
+        address: lastRecord.address,
+        username: input.username || lastRecord.username,
+        name: input.name || lastRecord.name,
+        twitter: input.twitter || lastRecord.twitter,
+      };
     }
   }
 }

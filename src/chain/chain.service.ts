@@ -125,9 +125,9 @@ export class ChainService {
       if (nonce) {
         return await contract.updateIdentity(
           address,
-          dto.username,
-          dto.name,
-          dto.twitter,
+          dto?.username || '',
+          dto?.name || '',
+          dto?.twitter || '',
           {
             gasPrice: ethers.utils.parseUnits('20', 'gwei'),
             gasLimit: 3000000,
@@ -138,9 +138,9 @@ export class ChainService {
 
       return await contract.updateIdentity(
         address,
-        dto.username,
-        dto.name,
-        dto.twitter,
+        dto?.username || '',
+        dto?.name || '',
+        dto?.twitter || '',
         {
           gasPrice: ethers.utils.parseUnits('20', 'gwei'),
           gasLimit: 3000000,

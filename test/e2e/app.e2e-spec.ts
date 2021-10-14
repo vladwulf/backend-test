@@ -20,8 +20,6 @@ describe('User e2e Test', () => {
   let walletAddress: string;
   let userSignature: string;
 
-  let nonce: number;
-
   beforeAll(async () => {
     const module = await Test.createTestingModule({
       imports: [AppModule],
@@ -47,7 +45,6 @@ describe('User e2e Test', () => {
 
       const msg = Buffer.from("I'd like to sign in");
       const signature = await signer.signMessage(msg);
-      console.log('signature', signature);
 
       walletAddress = await signer.getAddress();
       userSignature = signature;
@@ -123,7 +120,7 @@ describe('User e2e Test', () => {
           query: print(query),
         })
         .expect((res) => {
-          expect(res.body.errors).toBeDefined();
+          expect(res.body.errors).toBeUndefined();
           expect(res.status).toBe(200);
         });
     });
@@ -208,6 +205,7 @@ describe('User e2e Test', () => {
     });
   });
 
+  // TODO: enable this and disable updateMe() test as nonces are too close
   // describe('user create', () => {
   //   const chainId = 42;
 
