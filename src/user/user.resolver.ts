@@ -111,26 +111,24 @@ export class UserResolver {
 
     const userId = `${chainId}:${address}`;
 
-    if (chainId === 42) {
-      try {
-        await this.chainService.createIdentity(
-          NetworkType.KOVAN,
-          address,
-          input,
-        );
-      } catch (error) {
-        return new UserInputError('Please provide a valid UserInput');
-      }
-
-      return {
-        id: userId,
-        chainId: chainId,
-        address: address,
-        username: input.username,
-        name: input.name,
-        twitter: input.twitter,
-      };
+    try {
+      await this.chainService.createIdentity(
+        chainId === 42 ? NetworkType.KOVAN : NetworkType.RINKEBY,
+        address,
+        input,
+      );
+    } catch (error) {
+      return new UserInputError('Please provide a valid UserInput');
     }
+
+    return {
+      id: userId,
+      chainId: chainId,
+      address: address,
+      username: input.username,
+      name: input.name,
+      twitter: input.twitter,
+    };
   }
 
   @Mutation()
@@ -152,38 +150,36 @@ export class UserResolver {
 
     const userId = `${chainId}:${address}`;
 
-    if (chainId === 42) {
-      try {
-        await this.chainService.updateIdentity(
-          NetworkType.KOVAN,
-          address,
-          input,
-        );
-      } catch (error) {
-        return new UserInputError(error.message);
-      }
-
-      const lastRecord = await this.eventModel.findOne(
-        {
-          address,
-          chainId,
-        },
-        {},
-        {
-          sort: {
-            blockNumber: -1,
-          },
-        },
+    try {
+      await this.chainService.updateIdentity(
+        chainId === 42 ? NetworkType.KOVAN : NetworkType.RINKEBY,
+        address,
+        input,
       );
-
-      return {
-        id: userId,
-        chainId: lastRecord.chainId,
-        address: lastRecord.address,
-        username: input.username || lastRecord.username,
-        name: input.name || lastRecord.name,
-        twitter: input.twitter || lastRecord.twitter,
-      };
+    } catch (error) {
+      return new UserInputError(error.message);
     }
+
+    const lastRecord = await this.eventModel.findOne(
+      {
+        address,
+        chainId,
+      },
+      {},
+      {
+        sort: {
+          blockNumber: -1,
+        },
+      },
+    );
+
+    return {
+      id: userId,
+      chainId: lastRecord.chainId,
+      address: lastRecord.address,
+      username: input.username || lastRecord.username,
+      name: input.name || lastRecord.name,
+      twitter: input.twitter || lastRecord.twitter,
+    };
   }
 }
