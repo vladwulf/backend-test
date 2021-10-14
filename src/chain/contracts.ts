@@ -1,5 +1,5 @@
 export const kovanContract = {
-  address: '0xb291F76a93a477D373ad93Fd77755C9f92A0A20E',
+  address: '0x6b221e8e8c320a83901Ed3FF2d70253Ad75F25d4',
   abi: [
     {
       anonymous: false,
