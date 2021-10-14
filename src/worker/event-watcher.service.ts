@@ -44,9 +44,9 @@ export class EventWatcherService {
         type: event.name,
         chainId: 42,
         address: event.args[0],
-        username: event?.args[1]?.hash,
-        name: event?.args[2],
-        twitter: event?.args[3],
+        username: event?.args[2],
+        name: event?.args[3],
+        twitter: event?.args[4],
       };
     });
 
@@ -76,9 +76,9 @@ export class EventWatcherService {
   //       type: event.name,
   //       chainId: 4,
   //       address: event.args[0],
-  //       username: event?.args[1]?.hash,
-  //       name: event?.args[2],
-  //       twitter: event?.args[3],
+  //       username: event?.args[2],
+  //       name: event?.args[3],
+  //       twitter: event?.args[4],
   //     };
   //   });
 
